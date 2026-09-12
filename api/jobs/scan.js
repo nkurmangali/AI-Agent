@@ -146,7 +146,9 @@ function asSentence(value) {
 
 function buildReasons(job, details) {
   const accessible = job.juniorEvidence[0]
-    ? asSentence(job.juniorEvidence[0])
+    ? job.juniorEvidence[0].split(/\s+/).length < 5
+      ? `The listing provides explicit early-career evidence: “${job.juniorEvidence[0].replace(/[.!?]+$/, "")}.”`
+      : asSentence(job.juniorEvidence[0])
     : `The listing explicitly uses “${details.accessibleEvidence[0]},” an early-career signal used in this ranking.`;
   const skills = job.transferableSkills.length
     ? `The listing identifies ${job.transferableSkills.slice(0, 3).join(", ")}.`
