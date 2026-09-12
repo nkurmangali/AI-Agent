@@ -16,7 +16,7 @@
           <span class="wordmark-mark" aria-hidden="true">AI</span>
           <span>News Briefing</span>
         </a>
-        <p class="edition">Phase 1 · News Radar</p>
+        <p class="edition">Phase 2 · News Radar + Web Explorer</p>
       </div>
     </header>
 
@@ -24,7 +24,7 @@
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow">Signal over noise</p>
         <h1 id="page-title">The AI stories worth your attention.</h1>
-        <p class="intro-copy">One concise feed from WIRED, TechCrunch, and VentureBeat—with an on-demand deep read when a headline needs more context.</p>
+        <p class="intro-copy">One concise feed from WIRED, TechCrunch, and VentureBeat—with on-demand retrieval for a selected story or any public webpage.</p>
       </section>
 
       <section class="radar" aria-labelledby="radar-title">
@@ -59,6 +59,30 @@
 
         <div id="news-status" class="status-message" role="status" aria-live="polite">Load the latest stories to begin.</div>
         <div id="news-list" class="news-list" aria-live="polite" aria-busy="false"></div>
+      </section>
+
+      <section class="explorer" aria-labelledby="explorer-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Firecrawl retrieval</p>
+            <h2 id="explorer-title">Explore Any Web Page</h2>
+          </div>
+          <p class="article-count">One page per request</p>
+        </div>
+        <p class="explorer-copy">Enter a public webpage to retrieve its main content directly. This is separate from RSS discovery and will not add the page to the news feed.</p>
+
+        <form id="explorer-form" class="explorer-form" novalidate>
+          <label class="url-field" for="explorer-url">
+            <span>Public webpage URL</span>
+            <input id="explorer-url" name="url" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com/article">
+          </label>
+          <button id="scrape-page" class="primary-button scrape-button" type="submit">Scrape Page</button>
+        </form>
+
+        <div id="explorer-status" class="status-message" role="status" aria-live="polite">Enter one public HTTP or HTTPS page above.</div>
+        <article id="explorer-result" class="explorer-result" aria-live="polite" aria-busy="false">
+          <p class="panel-placeholder">The retrieved page will appear here, separate from your RSS stories.</p>
+        </article>
       </section>
     </main>
 

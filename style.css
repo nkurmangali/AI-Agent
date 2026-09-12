@@ -38,7 +38,7 @@ a { color: inherit; }
   backdrop-filter: blur(16px);
 }
 
-.header-inner, .footer-inner, .section-heading, .deep-read-heading {
+.header-inner, .footer-inner, .section-heading, .deep-read-heading, .explorer-result-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -65,7 +65,7 @@ a { color: inherit; }
   color: var(--cyan);
   font-size: 0.8rem;
 }
-.edition, .eyebrow, .article-count, .source-name, .filter-field span {
+.edition, .eyebrow, .article-count, .source-name, .filter-field span, .url-field span {
   color: var(--muted);
   font-size: 0.75rem;
   font-weight: 800;
@@ -126,9 +126,9 @@ button:focus-visible, input:focus-visible, a:focus-visible {
   outline: 3px solid rgba(126, 231, 255, 0.5);
   outline-offset: 3px;
 }
-.filter-field { display: grid; gap: 0.45rem; }
-.filter-field span { padding-left: 0.1rem; }
-.filter-field input {
+.filter-field, .url-field { display: grid; gap: 0.45rem; }
+.filter-field span, .url-field span { padding-left: 0.1rem; }
+.filter-field input, .url-field input {
   width: 100%;
   min-height: 2.6rem;
   border: 0;
@@ -138,8 +138,8 @@ button:focus-visible, input:focus-visible, a:focus-visible {
   color: #fff;
   outline: none;
 }
-.filter-field input::placeholder { color: #718899; }
-.filter-field input:focus { border-bottom-color: var(--cyan); }
+.filter-field input::placeholder, .url-field input::placeholder { color: #718899; }
+.filter-field input:focus, .url-field input:focus { border-bottom-color: var(--cyan); }
 
 .deep-read {
   min-height: 12rem;
@@ -224,6 +224,63 @@ button:focus-visible, input:focus-visible, a:focus-visible {
   color: var(--muted);
   text-align: center;
 }
+
+.explorer {
+  margin-top: clamp(4rem, 9vw, 7rem);
+  padding-top: clamp(3rem, 7vw, 5rem);
+  border-top: 1px solid var(--line);
+}
+.explorer-copy {
+  max-width: 720px;
+  margin: -0.25rem 0 1.5rem;
+  color: #adbfcb;
+  line-height: 1.7;
+}
+.explorer-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 1rem;
+  align-items: end;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+.url-field input { min-height: 3.25rem; }
+.scrape-button { min-width: 9.5rem; }
+.explorer-result {
+  min-height: 11rem;
+  padding: clamp(1.35rem, 4vw, 2rem);
+  border: 1px solid rgba(126, 231, 255, 0.22);
+  border-radius: 1rem;
+  background: var(--surface-strong);
+}
+.explorer-result-heading { align-items: flex-start; }
+.explorer-result h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  line-height: 1.18;
+}
+.retrieved-url {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 0.75rem;
+  overflow: hidden;
+  color: var(--cyan);
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.explorer-description { color: #fff0bd; font-weight: 650; line-height: 1.7; }
+.explorer-content { color: #c3d1db; line-height: 1.75; white-space: pre-wrap; }
+.original-page-link {
+  display: inline-block;
+  margin-top: 0.75rem;
+  color: var(--yellow);
+  font-weight: 800;
+  text-underline-offset: 0.2em;
+}
 .site-footer { border-top: 1px solid var(--line); color: #718899; font-size: 0.8rem; }
 .footer-inner { min-height: 5rem; }
 .footer-inner p { margin: 0; }
@@ -232,13 +289,13 @@ button:focus-visible, input:focus-visible, a:focus-visible {
   .shell { width: min(100% - 1.25rem, 1120px); }
   .edition { display: none; }
   .page-grid { padding-top: 3rem; }
-  .controls, .news-card { grid-template-columns: 1fr; }
+  .controls, .news-card, .explorer-form { grid-template-columns: 1fr; }
   .deep-read-button { justify-self: start; }
   .footer-inner { display: grid; justify-content: start; padding-block: 1.25rem; }
 }
 
 @media (max-width: 480px) {
-  .section-heading, .deep-read-heading { align-items: flex-start; flex-direction: column; }
+  .section-heading, .deep-read-heading, .explorer-result-heading { align-items: flex-start; flex-direction: column; }
   h1 { font-size: clamp(2.9rem, 16vw, 4.2rem); }
 }
 

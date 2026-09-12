@@ -6,6 +6,11 @@ const articleCount = document.querySelector("#article-count");
 const deepReadPanel = document.querySelector("#deep-read");
 const deepReadContent = document.querySelector("#deep-read-content");
 const deepReadDomain = document.querySelector("#deep-read-domain");
+const explorerForm = document.querySelector("#explorer-form");
+const explorerUrl = document.querySelector("#explorer-url");
+const scrapeButton = document.querySelector("#scrape-page");
+const explorerStatus = document.querySelector("#explorer-status");
+const explorerResult = document.querySelector("#explorer-result");
 
 let articles = [];
 let activeDeepReadButton = null;
@@ -169,5 +174,98 @@ async function loadDeepRead(article, button) {
   }
 }
 
+function setExplorerStatus(message, isError = false) {
+  explorerStatus.textContent = message;
+  explorerStatus.classList.toggle("error", isError);
+}
+
+function showExplorerMessage(message) {
+  explorerResult.replaceChildren();
+  const paragraph = document.createElement("p");
+  paragraph.className = "panel-placeholder";
+  paragraph.textContent = message;
+  explorerResult.append(paragraph);
+}
+
+function renderExplorerResult(payload) {
+  explorerResult.replaceChildren();
+
+  const heading = document.createElement("div");
+  heading.className = "explorer-result-heading";
+  const title = document.createElement("h3");
+  title.textContent = payload.title || "Retrieved page";
+  const domain = document.createElement("span");
+  domain.className = "domain-badge";
+  domain.textContent = payload.domain || "Web page";
+  heading.append(title, domain);
+
+  const pageUrl = document.createElement("a");
+  pageUrl.className = "retrieved-url";
+  pageUrl.href = payload.url;
+  pageUrl.target = "_blank";
+  pageUrl.rel = "noopener noreferrer";
+  pageUrl.textContent = payload.url;
+
+  explorerResult.append(heading, pageUrl);
+
+  if (payload.description) {
+    const description = document.createElement("p");
+    description.className = "explorer-description";
+    description.textContent = payload.description;
+    explorerResult.append(description);
+  }
+
+  const content = document.createElement("p");
+  content.className = "explorer-content";
+  content.textContent = payload.content || "No main page text was returned.";
+
+  const originalLink = document.createElement("a");
+  originalLink.className = "original-page-link";
+  originalLink.href = payload.url;
+  originalLink.target = "_blank";
+  originalLink.rel = "noopener noreferrer";
+  originalLink.textContent = "Open Original Page ↗";
+  explorerResult.append(content, originalLink);
+}
+
+async function explorePage(event) {
+  event.preventDefault();
+  const url = explorerUrl.value.trim();
+  if (!url) {
+    setExplorerStatus("Enter a public webpage URL before scraping.", true);
+    showExplorerMessage("No URL was provided.");
+    explorerUrl.focus();
+    return;
+  }
+
+  scrapeButton.disabled = true;
+  scrapeButton.textContent = "Scraping…";
+  explorerResult.setAttribute("aria-busy", "true");
+  setExplorerStatus("Retrieving one webpage with Firecrawl…");
+  showExplorerMessage(`Retrieving ${url}…`);
+
+  try {
+    const response = await fetch("/api/scrape", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ url }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || "The webpage could not be retrieved.");
+
+    renderExplorerResult(payload);
+    setExplorerStatus(`Retrieved one page from ${payload.domain || "the requested website"}.`);
+  } catch (error) {
+    const message = error.message || "The webpage could not be retrieved.";
+    setExplorerStatus(message, true);
+    showExplorerMessage(message);
+  } finally {
+    scrapeButton.disabled = false;
+    scrapeButton.textContent = "Scrape Page";
+    explorerResult.setAttribute("aria-busy", "false");
+  }
+}
+
 loadButton.addEventListener("click", loadNews);
 filterInput.addEventListener("input", renderArticles);
+explorerForm.addEventListener("submit", explorePage);
