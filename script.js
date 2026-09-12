@@ -11,6 +11,14 @@ const explorerUrl = document.querySelector("#explorer-url");
 const scrapeButton = document.querySelector("#scrape-page");
 const explorerStatus = document.querySelector("#explorer-status");
 const explorerResult = document.querySelector("#explorer-result");
+const jobScoutForm = document.querySelector("#job-scout-form");
+const jobUrlInputs = Array.from({ length: 5 }, (_, index) => document.querySelector(`#job-url-${index + 1}`));
+const jobSourceStatuses = Array.from({ length: 5 }, (_, index) => document.querySelector(`#job-source-status-${index + 1}`));
+const scanJobsButton = document.querySelector("#scan-jobs");
+const clearJobsButton = document.querySelector("#clear-jobs");
+const jobScoutStatus = document.querySelector("#job-scout-status");
+const jobResults = document.querySelector("#job-results");
+const jobResultsList = document.querySelector("#job-results-list");
 
 let articles = [];
 let activeDeepReadButton = null;
@@ -266,6 +274,176 @@ async function explorePage(event) {
   }
 }
 
+function setJobScoutStatus(message, isError = false) {
+  jobScoutStatus.textContent = message;
+  jobScoutStatus.classList.toggle("error", isError);
+}
+
+function setSourceStatus(index, state, message) {
+  const status = jobSourceStatuses[index];
+  status.dataset.state = state;
+  status.textContent = message;
+  status.title = message;
+}
+
+function showJobResultsMessage(message) {
+  jobResultsList.replaceChildren();
+  const paragraph = document.createElement("p");
+  paragraph.className = "panel-placeholder";
+  paragraph.textContent = message;
+  jobResultsList.append(paragraph);
+}
+
+function appendJobMeta(container, label, value) {
+  if (!value) return;
+  const item = document.createElement("span");
+  item.textContent = `${label}: ${value}`;
+  container.append(item);
+}
+
+function createRankedJobCard(job) {
+  const card = document.createElement("article");
+  card.className = "ranked-job-card";
+
+  const rank = document.createElement("span");
+  rank.className = "job-rank";
+  rank.textContent = `#${job.rank}`;
+
+  const content = document.createElement("div");
+  content.className = "ranked-job-content";
+  const heading = document.createElement("h4");
+  heading.textContent = job.title;
+  const employer = document.createElement("p");
+  employer.className = "job-employer";
+  employer.textContent = job.employer || "Employer not listed";
+
+  const meta = document.createElement("div");
+  meta.className = "job-meta";
+  appendJobMeta(meta, "Location", job.location);
+  appendJobMeta(meta, "Source", job.sourceDomain);
+  appendJobMeta(meta, "Type", job.employmentType);
+  appendJobMeta(meta, "Published", job.postedDate);
+
+  const reasons = document.createElement("ul");
+  reasons.className = "job-reasons";
+  for (const reason of job.reasons.slice(0, 3)) {
+    const item = document.createElement("li");
+    const reasonHeading = document.createElement("strong");
+    reasonHeading.textContent = `${reason.heading}: `;
+    item.append(reasonHeading, document.createTextNode(reason.text));
+    reasons.append(item);
+  }
+
+  const originalUrl = job.jobUrl || job.sourceUrl;
+  if (originalUrl) {
+    const link = document.createElement("a");
+    link.className = "original-page-link";
+    link.href = originalUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = job.jobUrl ? "Open Job Posting ↗" : "Open Source Page ↗";
+    content.append(heading, employer, meta, reasons, link);
+  } else {
+    content.append(heading, employer, meta, reasons);
+  }
+
+  card.append(rank, content);
+  return card;
+}
+
+function renderRankedJobs(jobs) {
+  jobResultsList.replaceChildren();
+  if (!jobs.length) {
+    showJobResultsMessage("No qualifying junior opportunities were found on the supplied pages.");
+    return;
+  }
+  for (const job of jobs) jobResultsList.append(createRankedJobCard(job));
+}
+
+function applySourceResults(sources, submittedIndexes) {
+  for (const source of sources || []) {
+    const state = source.status === "extracted" ? "extracted" : source.status === "no_jobs" ? "no-jobs" : "failed";
+    const label = source.status === "extracted" ? "Extracted" : source.status === "no_jobs" ? "No jobs found" : "Could not extract";
+    for (const requestIndex of source.inputIndexes || []) {
+      const inputIndex = submittedIndexes[requestIndex];
+      if (inputIndex !== undefined) setSourceStatus(inputIndex, state, label);
+    }
+  }
+}
+
+async function scanJobSources(event) {
+  event.preventDefault();
+  const firstUrl = jobUrlInputs[0].value.trim();
+  if (!firstUrl) {
+    setJobScoutStatus("Job Source 1 URL is required.", true);
+    setSourceStatus(0, "failed", "Could not extract");
+    jobUrlInputs[0].focus();
+    return;
+  }
+
+  const submittedIndexes = [];
+  const urls = [];
+  jobUrlInputs.forEach((input, index) => {
+    const value = input.value.trim();
+    if (value) {
+      submittedIndexes.push(index);
+      urls.push(value);
+      setSourceStatus(index, "scanning", "Scanning");
+    } else {
+      setSourceStatus(index, "waiting", "Waiting");
+    }
+  });
+
+  scanJobsButton.disabled = true;
+  scanJobsButton.textContent = "Scanning Sources…";
+  jobResults.setAttribute("aria-busy", "true");
+  setJobScoutStatus(`Scanning ${urls.length} public job source${urls.length === 1 ? "" : "s"}…`);
+  showJobResultsMessage("Extracting visible jobs and comparing early-career evidence…");
+
+  try {
+    const response = await fetch("/api/jobs/scan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ urls }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    applySourceResults(payload.sources, submittedIndexes);
+
+    if (!response.ok) {
+      if (Array.isArray(payload.invalidIndexes)) {
+        for (const requestIndex of payload.invalidIndexes) {
+          const inputIndex = submittedIndexes[requestIndex];
+          if (inputIndex !== undefined) setSourceStatus(inputIndex, "failed", "Could not extract");
+        }
+      }
+      throw new Error(payload.error || "The job pages could not be scanned.");
+    }
+
+    const jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+    renderRankedJobs(jobs);
+    setJobScoutStatus(jobs.length
+      ? `Found ${jobs.length} recommended junior opportunit${jobs.length === 1 ? "y" : "ies"}.`
+      : "The pages were scanned, but no qualifying junior opportunities were found.");
+  } catch (error) {
+    const message = error.message || "The job pages could not be scanned.";
+    setJobScoutStatus(message, true);
+    showJobResultsMessage(message);
+  } finally {
+    scanJobsButton.disabled = false;
+    scanJobsButton.textContent = "Find Junior Opportunities";
+    jobResults.setAttribute("aria-busy", "false");
+  }
+}
+
+function clearJobScout() {
+  jobScoutForm.reset();
+  jobSourceStatuses.forEach((_, index) => setSourceStatus(index, "waiting", "Waiting"));
+  setJobScoutStatus("Add at least one public job-listing page to begin.");
+  showJobResultsMessage("Ranked roles from successful sources will appear here.");
+}
+
 loadButton.addEventListener("click", loadNews);
 filterInput.addEventListener("input", renderArticles);
 explorerForm.addEventListener("submit", explorePage);
+jobScoutForm.addEventListener("submit", scanJobSources);
+clearJobsButton.addEventListener("click", clearJobScout);
