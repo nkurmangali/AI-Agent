@@ -1,0 +1,144 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #07111f;
+  color: #f7fbff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(20, 160, 200, 0.24), transparent 34rem),
+    linear-gradient(135deg, #050c16, #0a1728 55%, #08111c);
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(126, 231, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126, 231, 255, 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  content: "";
+  mask-image: linear-gradient(to bottom, black, transparent 90%);
+}
+
+.news-flash {
+  width: min(960px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: clamp(2rem, 8vw, 6rem) 0 2rem;
+}
+
+.edition,
+.footer-note {
+  color: #91a9bc;
+  font-size: 0.875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.edition {
+  margin: 0 0 1rem;
+}
+
+.headline-card {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(2rem, 7vw, 5.5rem);
+  border: 1px solid rgba(126, 231, 255, 0.25);
+  border-radius: 1.5rem;
+  background: linear-gradient(145deg, rgba(16, 36, 58, 0.94), rgba(7, 18, 31, 0.98));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.headline-card::after {
+  position: absolute;
+  top: -6rem;
+  right: -6rem;
+  width: 18rem;
+  height: 18rem;
+  border: 3rem solid rgba(255, 207, 90, 0.09);
+  border-radius: 50%;
+  content: "";
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #a9c2d5;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: #7ee7ff;
+  box-shadow: 0 0 1rem rgba(126, 231, 255, 0.85);
+}
+
+h1 {
+  max-width: 13ch;
+  margin: 1.6rem 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3rem, 9vw, 6.8rem);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+}
+
+.signal {
+  margin: 0;
+  color: #c8d8e4;
+  font-size: clamp(1rem, 2.5vw, 1.35rem);
+  letter-spacing: 0.035em;
+}
+
+.signal span {
+  padding: 0 0.35rem;
+  color: #7ee7ff;
+}
+
+.signal strong {
+  color: #ffcf5a;
+}
+
+.footer-note {
+  margin: 1.25rem 0 0;
+  line-height: 1.6;
+}
+
+@media (max-width: 520px) {
+  .news-flash {
+    width: min(100% - 1rem, 960px);
+    padding-top: 1rem;
+  }
+
+  .headline-card {
+    padding: 2rem 1.35rem 2.5rem;
+    border-radius: 1rem;
+  }
+
+  .signal span {
+    padding: 0 0.15rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}
